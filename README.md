@@ -1,4 +1,7 @@
 # SQLCover - Code coverage for SQL Server T-SQL
+
+**NOTE: This is a forked repository for adding custom functionality.**
+
 [![licence badge]][licence]
 [![stars badge]][stars]
 [![forks badge]][forks]
@@ -28,13 +31,17 @@ that it is well suited to running tSQLt tests using the Redgate DLM Automation
 Suite.
 
 Navigation:
- - [Installation](#installation)
- - [Usage](#usage)
-   - [1. Redgate DLM Automation Suite](#1-redgate-dlm-automation-suite)
-   - [2. Cover T-SQL Script](#2-cover-t-sql-script)
-   - [3. Cover anything else](#3-cover-anything-else)
- - [A final word...](#a-final-word)
- - [License](#license)
+- [SQLCover - Code coverage for SQL Server T-SQL](#sqlcover---code-coverage-for-sql-server-t-sql)
+    - [Redgate](#redgate)
+    - [Overview](#overview)
+  - [Installation](#installation)
+- [Usage](#usage)
+    - [1. Redgate DLM Automation Suite](#1-redgate-dlm-automation-suite)
+    - [2. Cover T-SQL Script](#2-cover-t-sql-script)
+    - [3. Cover anything else](#3-cover-anything-else)
+    - [4. Tidying up](#4-tidying-up)
+  - [License](#license)
+  - [Development](#development)
 
 
 ## Installation

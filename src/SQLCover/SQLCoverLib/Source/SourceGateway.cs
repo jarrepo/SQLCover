@@ -6,7 +6,7 @@ namespace SQLCover.Source
     public interface SourceGateway
     {
         SqlServerVersion GetVersion();
-        IEnumerable<Batch> GetBatches(List<string> objectFilter);
+        IEnumerable<Batch> GetBatches(List<string> includeFilter, List<string> objectFilter);
         string GetWarnings();
     }
 }

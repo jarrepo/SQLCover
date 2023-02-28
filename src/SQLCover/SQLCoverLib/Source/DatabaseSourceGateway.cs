@@ -39,7 +39,7 @@ namespace SQLCover.Source
         }
 
 
-public IEnumerable<Batch> GetBatches(List<string> objectFilter)
+        public IEnumerable<Batch> GetBatches(List<string> includeFilter, List<string> excludeFilter)
         {
             var table =
                 _databaseGateway.GetRecords(
@@ -50,24 +50,32 @@ public IEnumerable<Batch> GetBatches(List<string> objectFilter)
             
             var version = GetVersion();
             var excludedObjects = GetExcludedObjects();
-            if(objectFilter == null)
-                objectFilter = new List<string>();
+            if(includeFilter == null)
+                includeFilter = new List<string>();
+            if (excludeFilter == null)
+                excludeFilter = new List<string>();
 
-            objectFilter.Add(".*tSQLt.*");
+            excludeFilter.Add(".*tSQLt.*");
 
             foreach (DataRow row in table.Rows)
             {
                 var quoted = (bool) row["uses_quoted_identifier"];
                 
                 var name = row["object_name"] as string;
-                
-                if (name != null && row["object_id"] as int? != null &&  DoesNotMatchFilter(name, objectFilter, excludedObjects))
+
+                if (name == null || !(row["object_id"] is int))
+                    continue;
+
+                if (includeFilter.Count > 0 && !DoesMatchFilter(name, includeFilter))
+                {
+                    continue;;
+                }
+
+                if (DoesNotMatchFilter(name, excludeFilter, excludedObjects))
                 {
                     batches.Add(
                         new Batch(new StatementParser(version), quoted, EndDefinitionWithNewLine(GetDefinition(row)), name, name, (int) row["object_id"]));
-
                 }
-                
             }
 
             table.Dispose();
@@ -149,6 +157,19 @@ select major_id from sys.extended_properties ep
 
             return excludedObjects;
 
+        }
+
+        private bool DoesMatchFilter(string name, List<string> objectFilter)
+        {
+            var lowerName = name.ToLowerInvariant();
+
+            foreach (var filter in objectFilter)
+            {
+                if (Regex.IsMatch(name, (string)(filter ?? ".*")))
+                    return true;
+            }
+
+            return false;
         }
 
         private bool DoesNotMatchFilter(string name, List<string> objectFilter, List<string> excludedObjects)

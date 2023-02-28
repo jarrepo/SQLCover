@@ -16,6 +16,7 @@ namespace SQLCover
         private readonly string _databaseName;
         private readonly bool _debugger;
         private readonly TraceControllerType _traceType;
+        private readonly List<string> _includeFilter;
         private readonly List<string> _excludeFilter;
         private readonly bool _logging;
         private readonly SourceGateway _source;
@@ -28,31 +29,38 @@ namespace SQLCover
         private TraceController _trace;
 
         //This is to better support powershell and optional parameters
-        public CodeCoverage(string connectionString, string databaseName) : this(connectionString, databaseName, null, false, false, TraceControllerType.Default)
+        public CodeCoverage(string connectionString, string databaseName) : this(connectionString, databaseName, null, null, false, false, TraceControllerType.Default)
         {
         }
 
-        public CodeCoverage(string connectionString, string databaseName, string[] excludeFilter) : this(connectionString, databaseName, excludeFilter, false, false, TraceControllerType.Default)
+        public CodeCoverage(string connectionString, string databaseName, string[] excludeFilter) : this(connectionString, databaseName, null, excludeFilter, false, false, TraceControllerType.Default)
         {
         }
 
-        public CodeCoverage(string connectionString, string databaseName, string[] excludeFilter, bool logging) : this(connectionString, databaseName, excludeFilter, logging, false, TraceControllerType.Default)
+        public CodeCoverage(string connectionString, string databaseName, string[] excludeFilter, bool logging) : this(connectionString, databaseName, null, excludeFilter, logging, false, TraceControllerType.Default)
         {
         }
 
-        public CodeCoverage(string connectionString, string databaseName, string[] excludeFilter, bool logging, bool debugger) : this(connectionString, databaseName, excludeFilter, logging, debugger, TraceControllerType.Default)
+        public CodeCoverage(string connectionString, string databaseName, string[] excludeFilter, bool logging, bool debugger) : this(connectionString, databaseName, null, excludeFilter, logging, debugger, TraceControllerType.Default)
         {
         }
 
-        public CodeCoverage(string connectionString, string databaseName, string[] excludeFilter, bool logging, bool debugger, TraceControllerType traceType)
+        public CodeCoverage(string connectionString, string databaseName, string[] includeFilter, string[] excludeFilter, bool logging, bool debugger) : this(connectionString, databaseName, includeFilter, excludeFilter, logging, debugger, TraceControllerType.Default)
+        {
+        }
+
+        public CodeCoverage(string connectionString, string databaseName, string[] includeFilter, string[] excludeFilter, bool logging, bool debugger, TraceControllerType traceType)
         {
             if (debugger)
                 Debugger.Launch();
             
             _databaseName = databaseName;
+            if (includeFilter == null)
+                includeFilter = new string[0];
             if (excludeFilter == null)
                 excludeFilter = new string[0];
 
+            _includeFilter = includeFilter.ToList();
             _excludeFilter = excludeFilter.ToList();
             _logging = logging;
             _debugger = debugger;
@@ -101,7 +109,7 @@ namespace SQLCover
 
             var results = StopInternal();
 
-            GenerateResults(_excludeFilter, results, new List<string>(), "SQLCover result of running external process");
+            GenerateResults(_includeFilter, _excludeFilter, results, new List<string>(), "SQLCover result of running external process");
 
             return _result;
         }
@@ -158,7 +166,7 @@ namespace SQLCover
                 Debug("Stopping Code Coverage...done");
 
                 Debug("Getting Code Coverage Result");
-                GenerateResults(_excludeFilter, rawEvents, sqlExceptions, $"SQLCover result of running '{command}'");
+                GenerateResults(_includeFilter, _excludeFilter, rawEvents, sqlExceptions, $"SQLCover result of running '{command}'");
                 Debug("Getting Code Coverage Result..done");
             }
             catch (Exception e)
@@ -187,7 +195,7 @@ namespace SQLCover
                 Debug("Stopping Code Coverage...done");
 
                 Debug("Getting Code Coverage Result");
-                GenerateResults(_excludeFilter, rawEvents, new List<string>(), $"SQLCover result of running {exe} {args}");
+                GenerateResults(_includeFilter, _excludeFilter, rawEvents, new List<string>(), $"SQLCover result of running {exe} {args}");
                 Debug("Getting Code Coverage Result..done");
                 
             }
@@ -217,9 +225,9 @@ namespace SQLCover
         }
 
 
-        private void GenerateResults(List<string> filter, List<string> xml, List<string> sqlExceptions, string commandDetail)
+        private void GenerateResults(List<string> includeFilter, List<string> excludeFilter, List<string> xml, List<string> sqlExceptions, string commandDetail)
         {
-            var batches = _source.GetBatches(filter);
+            var batches = _source.GetBatches(includeFilter, excludeFilter);
             _result = new CoverageResult(batches, xml, _databaseName, _database.DataSource, sqlExceptions, commandDetail);
         }
 
