@@ -1,0 +1,1 @@
+dotnet run --project SQLCover.Runner/SQLCover.Runner.csproj -- -c "Data Source=localhost,1434;Persist Security Info=True;User ID=sa;Password=GoodSign2022;Application Name=SQLCoverRunner" -d jarmotest1 --include "stringresources_get" -e "exec tSQLt.RunAll" -o output
